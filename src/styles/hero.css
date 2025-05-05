@@ -1,0 +1,9 @@
+.heroContainer{
+  background-color: #F2EFE7;
+  padding: 80px 80px 60px 80px;
+  text-align: center;
+}
+
+.heroContainer img{
+  width: 70vw;
+}

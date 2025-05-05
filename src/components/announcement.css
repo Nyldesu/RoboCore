@@ -1,0 +1,83 @@
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Popup container */
+.popup-container {
+  justify-items: center;
+  text-align: center;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Close button */
+
+.popupClose {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.7rem;
+  width: 20px;
+  height: 20px;
+  padding: 15px;
+  color: #fff;
+  font-family: 'Poppins';
+  background-color: #006A71;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 200ms ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  opacity: 0.6;
+}
+
+
+.popupClose:hover{
+  opacity: 1;
+  transform: scale(1.04);
+}
+
+.timeDateContainer {
+  width: 90%;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* makes each input group take equal width */
+}
+
+
+.popup-container form{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.popup-container form .descriptionContainer {
+  height: 140px;           /* allow enough space for multi-line text */
+  padding: 8px;            /* ensures placeholder and text are not flush against edges */
+  resize: none;        /* optional: allows user to resize */
+  font-family: inherit;    /* keep font consistent */
+  font-size: 1rem;
+  line-height: 1.4;
+  box-sizing: border-box;  /* ensures padding doesn't overflow */
+}
