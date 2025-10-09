@@ -1,0 +1,27 @@
+{
+    "organization": "CARAGA STATE UNIVERSITY - ROBOTICS ENTHUSIASTS CLUB",
+    "academic_year": "2025 – 2026",
+    "members": [
+        {
+            "no": 1,
+            "id_number": "251-02438",
+            "full_name": "ABADIANO, Gian D.",
+            "program": "BSEcE",
+            "year": "I"
+        },
+        {
+            "no": 2,
+            "id_number": "251-03342",
+            "full_name": "ABALO, Jea Pcholuo C.",
+            "program": "BSEcE",
+            "year": "I"
+        },
+        {
+            "no": 3,
+            "id_number": "241-00388",
+            "full_name": "ABARCA, Cath Lyn Mae C.",
+            "program": "BSEcE",
+            "year": "II"
+        }
+    ]
+}

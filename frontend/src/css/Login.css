@@ -1,0 +1,140 @@
+/* Close button */
+.close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(229, 231, 235, 0.1); /* optional background */
+  color: #e5e7eb;
+  font-size: 16px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  font-weight: 700;
+  border-radius: 50px; /* perfect circle */
+  transition: color 0.2s ease;
+  z-index: 1001;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+
+
+.close-button:hover {
+  color: #48a6a7;
+}
+
+.login-page {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  width: 20rem;
+  max-width: 90vw;
+  background-color: #1e1e1e;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.5);
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  font-family: 'Poppins', sans-serif;
+  overflow: visible;
+}
+
+/* Container inputs */
+.login-page input {
+  width: 90%;
+  padding: 0.625rem;
+  margin-bottom: 1rem;
+  background-color: #2a2a2a;
+  color: #e5e7eb;
+  border: 1px solid #333333;
+  border-radius: 0.5rem;
+  transition: border-color 0.3s ease;
+}
+
+.login-page input:focus {
+  outline: none;
+  border-color: #48A6A7;
+  box-shadow: 0 0 1rem #48A6A7;
+  background-color: #00697152;
+}
+
+.login-page input::placeholder {
+  color: #888888;
+}
+
+/* Button container to align buttons side by side */
+.button-row {
+  width: 90%;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 1rem 0 2rem;
+}
+
+/* Buttons */
+.login-page button {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: #006A71;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.login-page button:hover {
+  background-color: #006971af;
+}
+
+.login-page button.guest {
+  background-color: transparent;
+  color: #9ACBD0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.login-page button.guest:hover {
+  background-color: #006971af;
+  color: white;
+}
+
+.login-page .error {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.login-page p {
+  margin: 0;
+  font-size: 0.5rem;
+  text-align: right;
+  color: #e5e7eb;
+}
+
+/* Background and overlay */
+.login-background {
+  position: fixed;
+  inset: 0;
+  background-image: url('../assets/background.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: brightness(0.5);
+  z-index: 998;
+}
+
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
