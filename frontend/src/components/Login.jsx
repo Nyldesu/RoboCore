@@ -21,10 +21,9 @@ function Login({ setAuth, onClose }) {
         const role = data.role?.toLowerCase();
 
         if (role === 'admin') {
-          setAuth({ isAuthenticated: true, role: 'admin' });
-          onClose();
-        } else if (role === 'guest') {
-          setAuth({ isAuthenticated: true, role: 'guest' });
+          const authData = { isAuthenticated: true, role: 'admin' };
+          localStorage.setItem('auth', JSON.stringify(authData));
+          setAuth(authData);
           onClose();
         } else {
           setError('Unknown role');
@@ -38,11 +37,6 @@ function Login({ setAuth, onClose }) {
     }
   };
 
-  const loginAsGuest = () => {
-    setAuth({ isAuthenticated: true, role: 'guest' });
-    onClose();
-  };
-
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleLogin();
@@ -51,20 +45,13 @@ function Login({ setAuth, onClose }) {
 
   return (
     <>
-      {/* Background Image */}
       <div className="login-background" style={{ backgroundImage: `url(${bg})` }} />
-
-      {/* Dark Overlay */}
       <div className="login-overlay" onClick={onClose} />
-
-      {/* Modal popup */}
       <div className="login-page" role="dialog" aria-modal="true" aria-labelledby="login-title">
         <button className="close-button" onClick={onClose} aria-label="Close login modal">
           &times;
         </button>
-
         <h2 id="login-title">RoboCore</h2>
-
         <input
           placeholder="Username"
           value={username}
@@ -79,14 +66,9 @@ function Login({ setAuth, onClose }) {
           onKeyDown={handleKeyDown}
         />
         {error && <p className="error">{error}</p>}
-
         <div className="button-row">
           <button onClick={handleLogin}>Login</button>
-          <button onClick={loginAsGuest} className="guest">
-            Continue as Guest
-          </button>
         </div>
-
         <p>&#169; RoboCore. All rights reserved.</p>
       </div>
     </>
