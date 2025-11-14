@@ -8,13 +8,13 @@ const SidebarContext = createContext();
 export default function Sidebar({ children }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <aside className="h-screen z-99">
+    <aside className="h-screen z-50 relative">
       <nav className="h-full flex flex-col bg-white shadow-sm">
         <div className="p-5 pb-2 flex justify-between items-center">
           <img
             src={robocoreLogo}
             className={`overflow-hidden transition-all ${expanded ? "w-30" : "w-0"}`}
-            alt=""
+            alt="Logo"
           />
           <button
             onClick={() => setExpanded((prev) => !prev)}
@@ -23,7 +23,6 @@ export default function Sidebar({ children }) {
             {expanded ? <LuPanelLeftClose /> : <LuPanelLeftOpen />}
           </button>
         </div>
-
         <SidebarContext.Provider value={{ expanded }}>
           <ul className="flex-1 px-5">{children}</ul>
         </SidebarContext.Provider>
@@ -34,10 +33,27 @@ export default function Sidebar({ children }) {
 
 export function SidebarItem({ icon, text, active, alert, to, onClick }) {
   const { expanded } = useContext(SidebarContext);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const auth = JSON.parse(localStorage.getItem("auth"));
+  const isAuthenticated = auth?.isAuthenticated;
+
+  if (text === "Logout" && !isAuthenticated) return null;
+
+  const handleClick = () => {
+    if (text === "Logout") setShowConfirm(true);
+    else if (onClick) onClick();
+  };
+
+  const confirmLogout = () => {
+    setShowConfirm(false);
+    if (onClick) onClick();
+  };
+
+  const cancelLogout = () => setShowConfirm(false);
 
   const ItemContent = (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className={`group relative flex items-center py-2 px-4 my-1 font-medium rounded-md transition-colors cursor-pointer
         ${active ? "bg-[#9ACBD0] text-[#006A71]" : "hover:bg-sky-50 text-gray-600"}`}
     >
@@ -47,9 +63,7 @@ export function SidebarItem({ icon, text, active, alert, to, onClick }) {
       </span>
       {alert && (
         <div
-          className={`absolute right-2 w-2 h-2 rounded bg-[#48A6A7] ${
-            expanded ? "" : "top-2"
-          }`}
+          className={`absolute right-2 w-2 h-2 rounded bg-[#48A6A7] ${expanded ? "" : "top-2"}`}
         />
       )}
       {!expanded && (
@@ -65,5 +79,31 @@ export function SidebarItem({ icon, text, active, alert, to, onClick }) {
     </div>
   );
 
-  return to ? <Link to={to}>{ItemContent}</Link> : ItemContent;
+  return (
+    <>
+      {to ? <Link to={to}>{ItemContent}</Link> : ItemContent}
+      {showConfirm && text === "Logout" && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center w-80">
+            <h2 className="text-lg font-semibold mb-3">Confirm Logout</h2>
+            <p className="text-gray-600 mb-5">Are you sure you want to log out?</p>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={confirmLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+              >
+                Yes, Logout
+              </button>
+              <button
+                onClick={cancelLogout}
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
