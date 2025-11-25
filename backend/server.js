@@ -94,6 +94,7 @@ function writeJSON(file, data) {
 }
 
 // Record attendance
+// Record attendance
 app.post("/api/attendance", (req, res) => {
   const { id_number } = req.body;
   if (!id_number) return res.status(400).json({ message: "Missing ID number." });
@@ -106,9 +107,14 @@ app.post("/api/attendance", (req, res) => {
   if (!student) return res.status(404).json({ message: "Student not found." });
 
   const attendance = readJSON(attendanceFile) || [];
+
+  // ✅ Convert current time to local ISO string
+  const now = new Date();
+  const localTimestamp = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
+
   const record = {
     ...student,
-    timestamp: new Date().toLocaleString(),
+    timestamp: localTimestamp,
   };
 
   attendance.push(record);
