@@ -71,7 +71,6 @@ export default function Dashboard() {
       <div className="flex space-x-6 mb-4">
         {[
           { id: "announcement", label: "Create Announcement" },
-          { id: "event", label: "Create Event" },
           { id: "attendance", label: "Attendance Checker" },
           { id: "list", label: "Attendance List" },
         ].map((tab) => (
@@ -138,52 +137,6 @@ export default function Dashboard() {
               {message.text}
             </p>
           )}
-        </div>
-      )}
-
-      {/* ---------------------------
-          EVENT FORM TAB
-      ---------------------------- */}
-      {activeTab === "event" && (
-        <div className="p-6 bg-white rounded-lg shadow-md max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold text-[#006A71] mb-2">Create Event</h1>
-
-          <form className="space-y-4">
-            <div className="flex flex-wrap md:flex-nowrap gap-4">
-              <div className="flex flex-col w-full">
-                <label className="mb-1 text-sm">Set Date:</label>
-                <input type="date" className="border rounded px-3 py-2" />
-              </div>
-
-              <div className="flex flex-col w-full">
-                <label className="mb-1 text-sm">Set Time In:</label>
-                <input type="time" className="border rounded px-3 py-2" />
-              </div>
-
-              <div className="flex flex-col w-full">
-                <label className="mb-1 text-sm">Set Time Out:</label>
-                <input type="time" className="border rounded px-3 py-2" />
-              </div>
-            </div>
-
-            <input
-              type="text"
-              placeholder="Event Title"
-              className="w-full border rounded px-4 py-2"
-            />
-
-            <textarea
-              placeholder="Description"
-              className="w-full h-32 border rounded px-4 py-2"
-            />
-
-            <button
-              type="submit"
-              className="bg-[#006A71] text-white px-6 py-2 rounded hover:bg-[#48A6A7]"
-            >
-              Save
-            </button>
-          </form>
         </div>
       )}
 

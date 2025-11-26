@@ -97,7 +97,7 @@ const AttendanceList = () => {
                 <th className="px-4 py-2 border text-center">Program</th>
                 <th className="px-4 py-2 border text-center">Year</th>
                 <th className="px-4 py-2 border text-center">Date</th>
-                <th className="px-4 py-2 border text-center">Time (UTC)</th>
+                <th className="px-4 py-2 border text-center">Time</th>
               </tr>
             </thead>
             <tbody>

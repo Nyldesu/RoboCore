@@ -35,6 +35,19 @@ apiInstance.setApiKey(
   process.env.BREVO_API_KEY // <- from .env
 );
 
+// Load email list
+const emailsJSON = path.join(__dirname, "emails.json");
+function readEmailList() {
+  try {
+    const data = fs.readFileSync(emailsJSON, "utf-8");
+    const parsed = JSON.parse(data);
+    return parsed.emails || [];
+  } catch (err) {
+    console.error("❌ Error reading emails.json:", err);
+    return [];
+  }
+}
+
 // Send announcement emails
 async function sendAnnouncementEmail(subject, content, recipients) {
   const sendSmtpEmail = new Brevo.SendSmtpEmail();
@@ -58,11 +71,23 @@ app.post("/api/announcements", async (req, res) => {
   const { title, content } = req.body;
   if (!title || !content)
     return res.status(400).json({ success: false, message: "Missing fields" });
-
+  // Read email list
   try {
-    await sendAnnouncementEmail(`New Announcement: ${title}`, content, [
-      "andalesiomj@gmail.com",
-    ]);
+    const recipients = readEmailList();
+
+    if (recipients.length === 0) {
+      return res.status(500).json({
+        success: false,
+        message: "No recipient emails found in emails.json",
+      });
+    }
+
+    await sendAnnouncementEmail(
+      `New Announcement: ${title}`,
+      content,
+      recipients
+    );
+
     res.json({ success: true });
   } catch {
     res.status(500).json({ success: false, message: "Error sending email" });
@@ -138,6 +163,19 @@ app.post("/api/login", (req, res) => {
   } else {
     res.status(401).json({ success: false, message: "Invalid credentials" });
   }
+});
+//server error
+app.use((err, req, res, next) => {
+  console.error("SERVER ERROR:", err.message);
+  res.status(500).json({ message: "Internal server error" });
+});
+
+//https
+app.use((req, res, next) => {
+    if (req.headers["x-forwarded-proto"] !== "https") {
+        return res.status(403).send("Use HTTPS");
+    }
+    next();
 });
 
 // Root endpoint
