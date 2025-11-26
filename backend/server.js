@@ -164,6 +164,19 @@ app.post("/api/login", (req, res) => {
     res.status(401).json({ success: false, message: "Invalid credentials" });
   }
 });
+//server error
+app.use((err, req, res, next) => {
+  console.error("SERVER ERROR:", err.message);
+  res.status(500).json({ message: "Internal server error" });
+});
+
+//https
+app.use((req, res, next) => {
+    if (req.headers["x-forwarded-proto"] !== "https") {
+        return res.status(403).send("Use HTTPS");
+    }
+    next();
+});
 
 // Root endpoint
 app.get("/", (req, res) => {
