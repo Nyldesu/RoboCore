@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import AttendanceList from "../components/AttendanceList";
 import AttendanceChecker from "../components/AttendanceChecker";
+import { getAttendance, sendAnnouncement } from "../api.js";
+
+
+
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("announcement");
@@ -24,13 +28,7 @@ export default function Dashboard() {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/announcements", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content }),
-      });
-
-      const data = await res.json();
+        const data = await sendAnnouncement(title, content);
       if (data.success) {
         setMessage({ type: "success", text: "✅ Announcement sent successfully!" });
         setTitle("");
@@ -51,14 +49,20 @@ export default function Dashboard() {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
 
   // Load attendance when tab is activated
-  useEffect(() => {
-    if (activeTab === "list") {
-      fetch("http://localhost:5000/api/attendance")
-        .then((res) => res.json())
-        .then((data) => setAttendanceRecords(data))
-        .catch((err) => console.error("Error loading attendance:", err));
-    }
-  }, [activeTab]);
+useEffect(() => {
+  if (activeTab === "list") {
+    const fetchAttendance = async () => {
+      try {
+        const data = await getAttendance();
+        setAttendanceRecords(data);
+      } catch (err) {
+        console.error("Error loading attendance:", err);
+      }
+    };
+    fetchAttendance();
+  }
+}, [activeTab]);
+
 
   // Update list after scan
   const handleScanComplete = (record) => {
