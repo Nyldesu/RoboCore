@@ -14,7 +14,7 @@ export async function loginUser(email, password) {
 }
 // Send attendance
 export async function sendAttendance({ id_number, timestamp }) {
-  const res = await fetch(`${API}/api/attendance`, {
+  const res = await fetch(`${API}/attendance`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id_number, timestamp }),
@@ -31,14 +31,14 @@ export async function sendAttendance({ id_number, timestamp }) {
 
 // Get attendance records
 export async function getAttendance() {
-  const res = await fetch(`${API}/api/attendance`);
+  const res = await fetch(`${API}/attendance`);
   if (!res.ok) throw new Error("Failed to fetch attendance");
   return res.json();
 }
 
 // Send announcement
 export async function sendAnnouncement(title, content) {
-  const res = await fetch(`${API}/api/announcements`, {
+  const res = await fetch(`${API}/announcements`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, content }),
