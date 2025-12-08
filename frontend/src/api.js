@@ -1,10 +1,8 @@
 // src/api.js
 const API = import.meta.env.VITE_API_URL;
 
-const API_URL = "https://robocore-backend.onrender.com/api";
-
 export async function loginUser(email, password) {
-  const res = await fetch(`${API_URL}/login`, {
+  const res = await fetch(`${API}/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
