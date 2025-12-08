@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import '../css/Login.css';
 
+// src/components/Login.jsx
+import { login } from "../api.js";
+
+async function handleLogin(email, password) {
+  const data = await login(email, password);
+  console.log(data);
+}
+
+
 function Login({ setAuth, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
