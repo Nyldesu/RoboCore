@@ -102,7 +102,6 @@ async function loadUsers() {
   return data.users;
 }
 
-
 // --- LOGIN ROUTE ---
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../css/Login.css';
-import { login } from '../api.js';
+import { loginUser } from '../api.js';
 
 function Login({ setAuth, onClose }) {
   const [email, setEmail] = useState('');
@@ -34,7 +34,8 @@ function Login({ setAuth, onClose }) {
 
   const handleLoginClick = async () => {
     try {
-      const data = await login(email, password);
+      const data = await loginUser(email, password);
+      console.log('Login successful:', data);
 
       // Successful login
       const authData = { isAuthenticated: true, role: data.role, token: data.token };
