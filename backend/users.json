@@ -1,0 +1,9 @@
+{
+  "users": [
+    {
+      "email": "marcjohncastillon18@gmail.com",
+      "passwordHash": "$2b$10$m2istjP8LfZjzYGYTuBVJuBr8T6q4Pn5gPc2nvLbCMBOyRLPofn8W",
+      "role": "admin"
+    }
+  ]
+}

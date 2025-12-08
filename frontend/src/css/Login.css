@@ -1,31 +1,26 @@
-/* Close button */
+/* Close */
 .close-button {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: rgba(229, 231, 235, 0.1); /* optional background */
-  color: #e5e7eb;
-  font-size: 16px;
+  top: .5rem;
+  right: .75rem;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 1.5rem;
+  line-height: 35px; 
+  text-align: center; 
   cursor: pointer;
-  width: 32px;
-  height: 32px;
-  font-weight: 700;
-  border-radius: 50px; /* perfect circle */
-  transition: color 0.2s ease;
+  transition: all 0.25s ease;
   z-index: 1001;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
+  display: inline-block; 
 }
-
 
 .close-button:hover {
-  color: #48a6a7;
+  transform: scale(1.3);
 }
 
+/* Login page */
 .login-page {
   position: fixed;
   top: 50%;
@@ -34,107 +29,114 @@
   z-index: 1000;
   width: 20rem;
   max-width: 90vw;
-  background-color: #1e1e1e;
-  border-radius: 0.75rem;
-  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.5);
-  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.01); 
+  border-radius: 1rem;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  color: #ffffff;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 2rem;
-  font-family: 'Poppins', sans-serif;
-  overflow: visible;
+  padding: 2.5rem 2rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  overflow: hidden;
 }
 
-/* Container inputs */
+/* Header */
+.login-page h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.75rem;
+  letter-spacing: .3rem;
+  color: #ffffff;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+}
+
+/* Input fields */
 .login-page input {
-  width: 90%;
-  padding: 0.625rem;
-  margin-bottom: 1rem;
-  background-color: #2a2a2a;
-  color: #e5e7eb;
-  border: 1px solid #333333;
-  border-radius: 0.5rem;
-  transition: border-color 0.3s ease;
-}
-
-.login-page input:focus {
-  outline: none;
-  border-color: #48A6A7;
-  box-shadow: 0 0 1rem #48A6A7;
-  background-color: #00697152;
+  width: 100%;
+  padding: 0.75rem .5rem; 
+  margin-bottom: 1.25rem;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3); 
+  background-color: transparent; 
+  color: #ffffff;
+  font-size: .8rem;
+  transition: all 0.3s ease;
 }
 
 .login-page input::placeholder {
-  color: #888888;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+  transition: transform 0.3s ease, color 0.3s ease;
 }
 
-/* Button container to align buttons side by side */
-.button-row {
-  width: 90%;
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin: 1rem 0 2rem;
-}
-
-/* Buttons */
-.login-page button {
-  flex: 1;
-  padding: 0.75rem;
-  background-color: #006A71;
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.login-page button:hover {
-  background-color: #006971af;
-}
-
-.login-page button.guest {
+.login-page input:focus {
+  outline: none; 
+  border-bottom: 2px solid rgba(255, 255, 255, 0.8); 
   background-color: transparent;
-  color: #9ACBD0;
+}
+
+
+/* Login */
+.button-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.login-page .login-button {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   font-size: 1rem;
-  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1), inset 0 0 4px rgba(255, 255, 255, 0.05);
 }
 
-.login-page button.guest:hover {
-  background-color: #006971af;
-  color: white;
+.login-page .login-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.2), inset 0 0 6px rgba(255, 255, 255, 0.1);
 }
 
+/* Errors */
 .login-page .error {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  font-size: .9rem;
+  color: #ff6b6b;
+  margin: -.5rem 0 0.75rem 0;
+  text-align: center;
+  text-shadow: 0 0 4px rgba(255, 107, 107, 0.7);
 }
 
-.login-page p {
-  margin: 0;
-  font-size: 0.5rem;
-  text-align: right;
-  color: #e5e7eb;
+.login-page .warn {
+  margin: 0.75rem 0 .5rem 0;
+  font-size: 0.9rem;
+  color: #ffffff; 
+  border-radius: 20px; 
+  text-align: center;
+  max-width: 80%;
 }
 
-/* Background and overlay */
-.login-background {
-  position: fixed;
-  inset: 0;
-  background-image: url('../assets/background.png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  filter: brightness(0.5);
-  z-index: 998;
+/* Copyright */
+.login-page .copyright {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
 }
 
+/* Background */
 .login-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, .5); 
+  backdrop-filter: blur(2px);
   z-index: 999;
 }
