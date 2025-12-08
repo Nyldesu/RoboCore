@@ -1,7 +1,6 @@
 // src/api.js
 const API = import.meta.env.VITE_API_URL;
 
-// Login
 export async function login(email, password) {
   const res = await fetch(`${API}/api/login`, {
     method: "POST",
@@ -10,7 +9,6 @@ export async function login(email, password) {
   });
   return res.json();
 }
-
 // Send attendance
 export async function sendAttendance({ id_number, timestamp }) {
   const res = await fetch(`${API}/api/attendance`, {

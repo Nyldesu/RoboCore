@@ -3,9 +3,6 @@ import AttendanceList from "../components/AttendanceList";
 import AttendanceChecker from "../components/AttendanceChecker";
 import { getAttendance, sendAnnouncement } from "../api.js";
 
-
-
-
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("announcement");
 

@@ -70,6 +70,15 @@ const emailsJSON = path.join(__dirname, "emails.json");
 const studentsFile = path.join(__dirname, "students.json");
 const attendanceFile = path.join(__dirname, "attendance.json");
 
+/* -------------------------
+   INITIALIZE ALL FILES
+--------------------------*/
+
+await ensureFile(usersFile, { users: [] });
+await ensureFile(emailsJSON, { emails: [] });
+await ensureFile(studentsFile, { members: [] });
+await ensureFile(attendanceFile, []);
+
 // Login limits
 let loginAttempts = {};
 const MAX_ATTEMPTS = 5;
@@ -78,8 +87,21 @@ const LOCKOUT_TIME = 5 * 60 * 1000;
 // Load users
 async function loadUsers() {
   const data = await readJSON(usersFile);
-  return data?.users || [];
+
+  if (!data || !Array.isArray(data.users)) {
+    const defaultAdmin = {
+      email: "marcjohncastillon18@gmail.com",
+      passwordHash: "$2b$10$m2istjP8LfZjzYGYTuBVJuBr8T6q4Pn5gPc2nvLbCMBOyRLPofn8W",
+      role: "admin"
+    };
+
+    await writeJSON(usersFile, { users: [defaultAdmin] });
+    return [defaultAdmin];
+  }
+
+  return data.users;
 }
+
 
 // --- LOGIN ROUTE ---
 app.post("/api/login", async (req, res) => {
