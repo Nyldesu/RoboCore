@@ -47,6 +47,7 @@ async function ensureFile(file, defaultData) {
 // JSON helpers 
 async function readJSON(file) {
   try {
+    await ensureFile(file, {}); 
     const data = await fs.readFile(file, "utf-8");
     return JSON.parse(data);
   } catch (err) {
@@ -93,7 +94,37 @@ async function loadUsers() {
   return data.users;
 }
 
-// Login route
+// Load users
+async function loadUsers() {
+  const data = await readJSON(usersFile);
+
+  if (!data || !Array.isArray(data.users)) {
+    console.error("❌ users.json missing or invalid");
+    return [];
+  }
+
+  return data.users;
+}
+
+// Load users
+async function loadUsers() {
+  const data = await readJSON(usersFile);
+
+  if (!data || !Array.isArray(data.users)) {
+    const defaultAdmin = {
+      email: "marcjohncastillon18@gmail.com",
+      passwordHash: "$2b$10$m2istjP8LfZjzYGYTuBVJuBr8T6q4Pn5gPc2nvLbCMBOyRLPofn8W",
+      role: "admin"
+    };
+
+    await writeJSON(usersFile, { users: [defaultAdmin] });
+    return [defaultAdmin];
+  }
+
+  return data.users;
+}
+
+// --- LOGIN ROUTE ---
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -106,12 +137,12 @@ app.post("/api/login", async (req, res) => {
 
   const attempts = loginAttempts[email];
 
+  // Lockout check
   if (Date.now() < attempts.lockUntil) {
     return res.status(403).json({
       message: "Too many failed attempts. Wait 5 minutes.",
       lockUntil: attempts.lockUntil,
     });
-  }
 
   const users = await loadUsers();
 
@@ -132,17 +163,16 @@ app.post("/api/login", async (req, res) => {
 
   if (!match) {
     attempts.count++;
-
     if (attempts.count >= MAX_ATTEMPTS) {
       attempts.count = 0;
       attempts.lockUntil = Date.now() + LOCKOUT_TIME;
 
       return res.status(403).json({
         message: "Account locked for 5 minutes.",
+        message: "Account locked for 5 minutes.",
         lockUntil: attempts.lockUntil,
       });
     }
-
     return res.status(401).json({
       message: "Invalid email or password.",
       attemptsLeft: MAX_ATTEMPTS - attempts.count,
@@ -159,9 +189,10 @@ app.post("/api/login", async (req, res) => {
   );
 
   res.json({ success: true, role: user.role, token });
+  res.json({ success: true, role: user.role, token });
 });
 
-// Brevo email system
+// ===== BREVO EMAIL SYSTEM =====
 const apiInstance = new Brevo.TransactionalEmailsApi();
 apiInstance.setApiKey(
   Brevo.TransactionalEmailsApiApiKeys.apiKey,
@@ -243,6 +274,7 @@ app.post("/api/attendance", async (req, res) => {
   ).toISOString();
 
   const record = { ...student, timestamp };
+  const record = { ...student, timestamp };
   attendance.push(record);
 
   await writeJSON(attendanceFile, attendance);
@@ -251,6 +283,8 @@ app.post("/api/attendance", async (req, res) => {
 });
 
 app.get("/api/attendance", async (req, res) => {
+  const data = await readJSON(attendanceFile);
+  res.json(data || []);
   const data = await readJSON(attendanceFile);
   res.json(data || []);
 });
@@ -267,6 +301,9 @@ app.get("/", (req, res) => {
 });
 
 // Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

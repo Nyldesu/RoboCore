@@ -1,11 +1,3 @@
-/*
-Components: 
-
-left robot img for about robocore - robot-l.png
-right robot img for about robec - robot-r.png
-president img - president.png
-adviser img - adviser.png
-*/
 
 import "../css/About.css";
 import robleft from '../assets/robot-l.png'

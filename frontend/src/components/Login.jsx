@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../css/Login.css';
+import { loginUser } from '../api.js';
 
 function Login({ setAuth, onClose }) {
   const [email, setEmail] = useState('');
@@ -9,7 +10,6 @@ function Login({ setAuth, onClose }) {
   const [playfulMessage, setPlayfulMessage] = useState('');
   const [lockSecondsLeft, setLockSecondsLeft] = useState(0);
 
-  // Playful messages
   const playfulMessages = [
     "Oops! Only {attempts} attempt(s) left—choose wisely!",
     "Careful! You have {attempts} more shot(s) before a timeout!",
@@ -24,58 +24,22 @@ function Login({ setAuth, onClose }) {
     return messageTemplate.replace("{attempts}", attempts);
   };
 
-  // Live countdown timer
   useEffect(() => {
     if (lockSecondsLeft <= 0) return;
-
     const timer = setInterval(() => {
-      setLockSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setLockSecondsLeft(prev => (prev <= 1 ? (clearInterval(timer), 0) : prev - 1));
     }, 1000);
-
     return () => clearInterval(timer);
   }, [lockSecondsLeft]);
 
-  const handleLogin = async () => {
+  const handleLoginClick = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message);
-
-        // If account is locked
-        if (data.lockUntil) {
-          setLockSecondsLeft(Math.ceil((data.lockUntil - Date.now()) / 1000));
-          setAttemptsLeft(undefined);
-          setPlayfulMessage('');
-          return;
-        }
-
-        // Update attempts left for normal failed attempt
-        if (data.attemptsLeft !== undefined) {
-          setAttemptsLeft(data.attemptsLeft);
-          setPlayfulMessage(getPlayfulMessage(data.attemptsLeft));
-        }
-
-        return;
-      }
+      const data = await loginUser(email, password);
+      console.log('Login successful:', data);
 
       // Successful login
-      const role = data.role;
-      const authData = { isAuthenticated: true, role, token: data.token };
+      const authData = { isAuthenticated: true, role: data.role, token: data.token };
       localStorage.setItem('auth', JSON.stringify(authData));
-
       setAuth(authData);
       onClose();
 
@@ -86,59 +50,56 @@ function Login({ setAuth, onClose }) {
       setEmail('');
       setPassword('');
     } catch (err) {
-      setError("Server error. Try again.");
+      setError(err.message || 'Server error. Try again.');
+
+      if (err.lockUntil) {
+        setLockSecondsLeft(Math.ceil((err.lockUntil - Date.now()) / 1000));
+        setAttemptsLeft(undefined);
+        setPlayfulMessage('');
+      } else if (err.attemptsLeft !== undefined) {
+        setAttemptsLeft(err.attemptsLeft);
+        setPlayfulMessage(getPlayfulMessage(err.attemptsLeft));
+      }
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleLogin();
-  };
+  const handleKeyDown = (e) => { if (e.key === 'Enter') handleLoginClick(); };
 
   return (
     <>
       <div className="login-overlay" onClick={onClose} />
       <div className="login-page">
         <button className="close-button" onClick={onClose}>&times;</button>
-
         <h2>-RoboCore-</h2>
 
         <input
           placeholder="Email"
           value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            setAttemptsLeft(undefined);
-            setPlayfulMessage('');
-            setLockSecondsLeft(0);
-          }}
+          onChange={e => { setEmail(e.target.value); setAttemptsLeft(undefined); setPlayfulMessage(''); setLockSecondsLeft(0); }}
           onKeyDown={handleKeyDown}
+          pattern= "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+          title="Please enter a valid email address."
+          required
         />
-
         <input
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
           onKeyDown={handleKeyDown}
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+          title="Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number."
+          required
         />
 
         {error && <p className="error">{error}</p>}
 
-        <button
-          className="login-button"
-          onClick={handleLogin}
-          disabled={lockSecondsLeft > 0} 
-        >
+        <button className="login-button" onClick={handleLoginClick} disabled={lockSecondsLeft > 0}>
           Login
         </button>
 
         {playfulMessage && <p className="warn">{playfulMessage}</p>}
-
-        {lockSecondsLeft > 0 && (
-          <p className="warn">
-            ⏱ Too many attempts! Try again in {lockSecondsLeft}s
-          </p>
-        )}
+        {lockSecondsLeft > 0 && <p className="warn">⏱ Too many attempts! Try again in {lockSecondsLeft}s</p>}
 
         <p className="copyright">© RoboCore. All rights reserved.</p>
       </div>

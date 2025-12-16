@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
+import { sendAttendance } from "../api.js"; // ✅ import it
 
 const QrScanner = ({ onScanComplete }) => {
   const [idNumber, setIdNumber] = useState("");
@@ -34,36 +35,29 @@ const QrScanner = ({ onScanComplete }) => {
 
   const handleSubmit = async () => {
     if (!idNumber.trim()) {
-      alert("Please scan or enter an ID number.");
-      return;
+      return alert("Please scan or enter an ID number.");
     }
 
     try {
-      // Send timestamp in ISO format
       const timestamp = new Date().toISOString();
+      // sendAttendance expects an object with id_number and timestamp
+      const data = await sendAttendance({ id_number: idNumber, timestamp });
 
-      const response = await fetch("http://localhost:5000/api/attendance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id_number: idNumber, timestamp }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(`⚠️ ${errorData.message || "Server error"}`);
-        return;
+      if (!data.full_name) {
+        throw new Error("Server error");
       }
 
-      const data = await response.json();
       alert(`✅ ${data.full_name} recorded successfully.`);
-
       onScanComplete(data);
       setIdNumber("");
-    } catch (error) {
-      console.error("Server error:", error);
-      alert("⚠️ Server error. Please check your backend.");
+    } catch (err) {
+      console.error(err);
+      alert("Invalid Input.");
     }
   };
+
+  const handleKeyDown = (e) => { if (e.key === 'Enter') handleSubmit(); };
+
 
   return (
     <div className="scanner-container p-6 bg-white rounded-xl shadow-md max-w-md mx-auto text-center">
@@ -78,6 +72,10 @@ const QrScanner = ({ onScanComplete }) => {
         placeholder="Scan or enter ID number"
         value={idNumber}
         onChange={(e) => setIdNumber(e.target.value)}
+        onKeyDown={handleKeyDown}
+        pattern="^[0-9]+-[0-9]+$"
+        title="Invalid Input."
+        required
         className="border border-gray-300 rounded px-3 py-2 mt-4 w-full focus:outline-none focus:ring-2 focus:ring-[#006A71]"
       />
 

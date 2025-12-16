@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getAttendance } from "../api.js";
 
 const AttendanceList = () => {
   const [allRecords, setAllRecords] = useState([]);
@@ -6,37 +7,27 @@ const AttendanceList = () => {
   const [filterDate, setFilterDate] = useState(getTodayISO());
   const [loading, setLoading] = useState(true);
 
-  // Function to get today's date in YYYY-MM-DD
   function getTodayISO() {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return today.toISOString().split("T")[0]; // YYYY-MM-DD
   }
 
-  // Fetch attendance data on mount
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const res = await fetch("http://localhost:5000/api/attendance");
-        const data = await res.json();
-
-        const formattedData = data.map((rec) => {
+        const data = await getAttendance();
+        const formattedData = (data || []).map((rec) => {
           const dateObj = new Date(rec.timestamp);
-
-          const year = dateObj.getUTCFullYear();
-          const month = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
-          const day = String(dateObj.getUTCDate()).padStart(2, "0");
-          const hours = dateObj.getUTCHours();
-          const minutes = String(dateObj.getUTCMinutes()).padStart(2, "0");
+          const hours = dateObj.getHours();
+          const minutes = String(dateObj.getMinutes()).padStart(2, "0");
           const ampm = hours >= 12 ? "PM" : "AM";
           const displayHour = hours % 12 === 0 ? 12 : hours % 12;
 
           return {
             ...rec,
-            isoDate: `${year}-${month}-${day}`,
-            date: `${month}/${day}/${year}`,
+            isoDate: dateObj.toISOString().split("T")[0],
+            date: `${dateObj.getMonth() + 1}/${dateObj.getDate()}/${dateObj.getFullYear()}`,
             time: `${displayHour}:${minutes} ${ampm}`,
           };
         });
@@ -48,17 +39,13 @@ const AttendanceList = () => {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  // Filter records whenever allRecords or filterDate changes
   useEffect(() => {
-    const filtered = allRecords.filter((rec) => rec.isoDate === filterDate);
-    setFilteredRecords(filtered);
+    setFilteredRecords(allRecords.filter((rec) => rec.isoDate === filterDate));
   }, [allRecords, filterDate]);
 
-  // Always keep filterDate as today by default
   const handleDateChange = (e) => setFilterDate(e.target.value);
 
   return (
