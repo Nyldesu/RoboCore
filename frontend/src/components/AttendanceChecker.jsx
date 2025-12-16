@@ -52,9 +52,11 @@ const QrScanner = ({ onScanComplete }) => {
       setIdNumber("");
     } catch (err) {
       console.error(err);
-      alert("⚠️ Server error. Check backend.");
+      alert("Invalid Input.");
     }
   };
+
+  const handleKeyDown = (e) => { if (e.key === 'Enter') handleSubmit(); };
 
 
   return (
@@ -70,6 +72,10 @@ const QrScanner = ({ onScanComplete }) => {
         placeholder="Scan or enter ID number"
         value={idNumber}
         onChange={(e) => setIdNumber(e.target.value)}
+        onKeyDown={handleKeyDown}
+        pattern="^[0-9]+-[0-9]+$"
+        title="Invalid Input."
+        required
         className="border border-gray-300 rounded px-3 py-2 mt-4 w-full focus:outline-none focus:ring-2 focus:ring-[#006A71]"
       />
 
