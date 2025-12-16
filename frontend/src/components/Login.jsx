@@ -77,6 +77,9 @@ function Login({ setAuth, onClose }) {
           value={email}
           onChange={e => { setEmail(e.target.value); setAttemptsLeft(undefined); setPlayfulMessage(''); setLockSecondsLeft(0); }}
           onKeyDown={handleKeyDown}
+          pattern= "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+          title="Please enter a valid email address."
+          required
         />
         <input
           type="password"
@@ -84,6 +87,9 @@ function Login({ setAuth, onClose }) {
           value={password}
           onChange={e => setPassword(e.target.value)}
           onKeyDown={handleKeyDown}
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+          title="Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number."
+          required
         />
 
         {error && <p className="error">{error}</p>}
