@@ -37,26 +37,17 @@ const AttendanceChecker = ({ onScanComplete }) => {
 
     try {
       const data = await sendAttendance(idNumber.trim());
-      console.log("Attendance response:", data);
+      const student = data.student;
+      const timestamp = data.timestamp;
 
-      // If student info exists, show it
-      if (data.student) {
-        setStudentInfo({ ...data.student, timestamp: data.timestamp });
-        alert(`✅ Attendance recorded for ${data.student.full_name}`);
-      } else {
-        setStudentInfo(null);
-        alert("✅ Attendance recorded successfully!");
-      }
+      setStudentInfo({ ...student, timestamp });
 
-      // Callback to parent component (AttendanceList)
       if (onScanComplete) {
-        const record = data.student
-          ? { ...data.student, timestamp: data.timestamp }
-          : { id_number: idNumber.trim(), timestamp: data.timestamp || new Date().toISOString() };
-        onScanComplete(record);
+        onScanComplete({ ...student, timestamp });
       }
 
-      setIdNumber(""); // clear input for next scan
+      alert(`✅ Attendance recorded for ${student.full_name}`);
+      setIdNumber("");
     } catch (err) {
       console.error("Attendance API error:", err);
       alert(err.message || "Failed to record attendance.");
@@ -81,8 +72,6 @@ const AttendanceChecker = ({ onScanComplete }) => {
         value={idNumber}
         onChange={(e) => setIdNumber(e.target.value)}
         onKeyDown={handleKeyDown}
-        pattern="^[0-9]+-[0-9]+$"
-        title="Invalid Input."
         className="border border-gray-300 rounded px-3 py-2 mt-4 w-full focus:outline-none focus:ring-2 focus:ring-[#006A71]"
       />
 
@@ -99,7 +88,7 @@ const AttendanceChecker = ({ onScanComplete }) => {
           <p><strong>ID Number:</strong> {studentInfo.id_number}</p>
           <p><strong>Program:</strong> {studentInfo.program}</p>
           <p><strong>Year:</strong> {studentInfo.year}</p>
-          <p><strong>Timestamp:</strong> {new Date(studentInfo.timestamp).toLocaleString()}</p>
+          <p><strong>Time:</strong> {new Date(studentInfo.timestamp).toLocaleString()}</p>
         </div>
       )}
     </div>

@@ -7,68 +7,55 @@ const AttendanceList = ({ newEntry }) => {
   const [filterDate, setFilterDate] = useState(getTodayISO());
   const [loading, setLoading] = useState(true);
 
-  // Get today in local ISO format
-function getTodayISO() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+  function getTodayISO() {
+    const now = new Date();
+    const tzOffset = now.getTimezoneOffset() * 60000;
+    return new Date(now - tzOffset).toISOString().split("T")[0];
+  }
 
+  const formatRecord = (rec) => {
+    const dateObj = new Date(rec.timestamp);
+    const tzOffset = dateObj.getTimezoneOffset() * 60000;
+    const localDate = new Date(dateObj - tzOffset);
 
-  // Format a backend record to local date/time
- const formatRecord = (rec) => {
-  const dateObj = new Date(rec.timestamp); // backend UTC
+    const year = localDate.getFullYear();
+    const month = localDate.getMonth() + 1;
+    const day = localDate.getDate();
+    const hours = localDate.getHours();
+    const minutes = String(localDate.getMinutes()).padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const displayHour = hours % 12 || 12;
 
-  const year = dateObj.getFullYear();
-  const month = dateObj.getMonth() + 1;
-  const day = dateObj.getDate();
-
-  const hours = dateObj.getHours();
-  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
-  const ampm = hours >= 12 ? "PM" : "AM";
-  const displayHour = hours % 12 || 12;
-
-  return {
-    id_number: rec.id_number,
-    full_name: rec.full_name,
-    program: rec.program || "",
-    year: rec.year || "",
-    isoDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-    date: `${month}/${day}/${year}`,
-    time: `${displayHour}:${minutes} ${ampm}`,
-    timestamp: dateObj.toISOString(),
+    return {
+      ...rec,
+      isoDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      date: `${month}/${day}/${year}`,
+      time: `${displayHour}:${minutes} ${ampm}`,
+    };
   };
-};
 
-
-  // Fetch attendance on mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAttendance = async () => {
       setLoading(true);
       try {
         const data = await getAttendance();
-        const formattedData = (data || []).map(formatRecord);
-        setAllRecords(formattedData);
+        const formatted = (data || []).map(formatRecord);
+        setAllRecords(formatted);
       } catch (err) {
-        console.error("Error fetching attendance:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+    fetchAttendance();
   }, []);
 
-  // Prepend new entry immediately
   useEffect(() => {
     if (newEntry) {
-      const formattedEntry = formatRecord(newEntry);
-      setAllRecords((prev) => [formattedEntry, ...prev]);
+      setAllRecords((prev) => [formatRecord(newEntry), ...prev]);
     }
   }, [newEntry]);
 
-  // Filter records by selected date
   useEffect(() => {
     setFilteredRecords(allRecords.filter((rec) => rec.isoDate === filterDate));
   }, [allRecords, filterDate]);
@@ -121,9 +108,9 @@ function getTodayISO() {
                   </td>
                 </tr>
               ) : (
-                filteredRecords.map((rec, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 border text-center">{index + 1}</td>
+                filteredRecords.map((rec, i) => (
+                  <tr key={i} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 border text-center">{i + 1}</td>
                     <td className="px-4 py-2 border">{rec.id_number}</td>
                     <td className="px-4 py-2 border">{rec.full_name}</td>
                     <td className="px-4 py-2 border text-center">{rec.program}</td>

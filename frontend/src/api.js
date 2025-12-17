@@ -16,7 +16,6 @@ export async function loginUser(email, password) {
   return await res.json();
 }
 
-// Send attendance
 export async function sendAttendance(id_number) {
   const token = localStorage.getItem("authToken");
   if (!token) throw new Error("User is not logged in.");
@@ -32,20 +31,15 @@ export async function sendAttendance(id_number) {
 
   const data = await res.json();
 
-  if (!res.ok) {
-    throw new Error(data.message || "Failed to record attendance.");
-  }
+  if (!res.ok) throw new Error(data.message || "Failed to record attendance.");
 
-  // ✅ No longer throws if student is missing
-  return data; 
+  return data; // Should include `student` and `timestamp`
 }
 
-// Get attendance records
 export async function getAttendance() {
+  const token = localStorage.getItem("authToken") || "";
   const res = await fetch(`${API}/attendance`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!res.ok) {
@@ -53,9 +47,8 @@ export async function getAttendance() {
     throw err;
   }
 
-  return res.json(); 
+  return res.json(); // Returns array of attendance records
 }
-
 // Send announcement
 export async function sendAnnouncement(title, content) {
   const res = await fetch(`${API}/announcements`, {

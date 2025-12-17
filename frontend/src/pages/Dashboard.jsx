@@ -154,7 +154,7 @@ const handleScanComplete = (record) => {
           ATTENDANCE LIST TAB
       ---------------------------- */}
       {activeTab === "list" && (
-        <AttendanceList records={attendanceRecords} />
+        <AttendanceList newEntry={attendanceRecords[0]} />
       )}
     </div>
   );
