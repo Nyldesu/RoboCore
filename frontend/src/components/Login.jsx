@@ -19,87 +19,120 @@ function Login({ setAuth, onClose }) {
   ];
 
   const getPlayfulMessage = (attempts) => {
-    const messageTemplate =
+    const template =
       playfulMessages[Math.floor(Math.random() * playfulMessages.length)];
-    return messageTemplate.replace("{attempts}", attempts);
+    return template.replace("{attempts}", attempts);
   };
 
+  // Countdown timer for lockout
   useEffect(() => {
     if (lockSecondsLeft <= 0) return;
+
     const timer = setInterval(() => {
-      setLockSecondsLeft(prev => (prev <= 1 ? (clearInterval(timer), 0) : prev - 1));
+      setLockSecondsLeft(prev =>
+        prev <= 1 ? (clearInterval(timer), 0) : prev - 1
+      );
     }, 1000);
+
     return () => clearInterval(timer);
   }, [lockSecondsLeft]);
 
+  // Handle login click
   const handleLoginClick = async () => {
+    setError('');
+
     try {
       const data = await loginUser(email, password);
-      console.log('Login successful:', data);
 
-      // Successful login
-      const authData = { isAuthenticated: true, role: data.role, token: data.token };
+      const authData = {
+        isAuthenticated: true,
+        role: data.role,
+        token: data.token,
+      };
       localStorage.setItem('auth', JSON.stringify(authData));
+      localStorage.setItem('authToken', data.token); 
       setAuth(authData);
-      onClose();
 
-      setError('');
+      // Reset 
       setAttemptsLeft(undefined);
       setPlayfulMessage('');
       setLockSecondsLeft(0);
       setEmail('');
       setPassword('');
+      onClose();
     } catch (err) {
-      setError(err.message || 'Server error. Try again.');
+      setAuth({ isAuthenticated: false });
+      localStorage.removeItem('auth');
+      localStorage.removeItem('authToken');
+
+      setError(err.message || 'Invalid email or password.');
 
       if (err.lockUntil) {
         setLockSecondsLeft(Math.ceil((err.lockUntil - Date.now()) / 1000));
         setAttemptsLeft(undefined);
         setPlayfulMessage('');
-      } else if (err.attemptsLeft !== undefined) {
+      }
+      else if (err.attemptsLeft !== undefined) {
         setAttemptsLeft(err.attemptsLeft);
         setPlayfulMessage(getPlayfulMessage(err.attemptsLeft));
       }
     }
   };
 
-  const handleKeyDown = (e) => { if (e.key === 'Enter') handleLoginClick(); };
+  // Enter key handler
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleLoginClick();
+  };
 
   return (
     <>
       <div className="login-overlay" onClick={onClose} />
       <div className="login-page">
-        <button className="close-button" onClick={onClose}>&times;</button>
+        <button className="close-button" onClick={onClose}>
+          &times;
+        </button>
+
         <h2>-RoboCore-</h2>
 
         <input
+          type="email"
           placeholder="Email"
           value={email}
-          onChange={e => { setEmail(e.target.value); setAttemptsLeft(undefined); setPlayfulMessage(''); setLockSecondsLeft(0); }}
+          onChange={e => {
+            setEmail(e.target.value);
+            setAttemptsLeft(undefined);
+            setPlayfulMessage('');
+            setLockSecondsLeft(0);
+          }}
           onKeyDown={handleKeyDown}
-          pattern= "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-          title="Please enter a valid email address."
           required
         />
+
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
           onKeyDown={handleKeyDown}
-          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-          title="Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number."
           required
         />
 
         {error && <p className="error">{error}</p>}
 
-        <button className="login-button" onClick={handleLoginClick} disabled={lockSecondsLeft > 0}>
+        <button
+          className="login-button"
+          onClick={handleLoginClick}
+          disabled={lockSecondsLeft > 0}
+        >
           Login
         </button>
 
         {playfulMessage && <p className="warn">{playfulMessage}</p>}
-        {lockSecondsLeft > 0 && <p className="warn">⏱ Too many attempts! Try again in {lockSecondsLeft}s</p>}
+        {lockSecondsLeft > 0 && (
+          <p className="warn">
+            ⏱ Too many attempts! Try again in {lockSecondsLeft}s
+          </p>
+        )}
 
         <p className="copyright">© RoboCore. All rights reserved.</p>
       </div>

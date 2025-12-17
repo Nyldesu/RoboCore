@@ -7,42 +7,67 @@ export async function loginUser(email, password) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email, password }),  // <-- IMPORTANT
+    body: JSON.stringify({ email, password }),
   });
 
-  return res.json();
+  if (!res.ok) {
+    const data = await res.json();
+    throw data;
+  }
+
+  return await res.json();
 }
+
 // Send attendance
 export async function sendAttendance({ id_number, timestamp }) {
   const res = await fetch(`${API}/attendance`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id_number, timestamp }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
+    },
+    body: JSON.stringify({ id_number, timestamp }), // <-- IMPORTANT
   });
 
   if (!res.ok) {
     const err = await res.json();
-    throw new Error(err.message || "Server error");
+    throw err;
   }
 
   return res.json(); // must return full student record
 }
 
-
 // Get attendance records
 export async function getAttendance() {
-  const res = await fetch(`${API}/attendance`);
-  if (!res.ok) throw new Error("Failed to fetch attendance");
+  const res = await fetch(`${API}/attendance`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw err;
+  }
+
   return res.json();
 }
 
-// Send announcement
+// Semd announcement
 export async function sendAnnouncement(title, content) {
   const res = await fetch(`${API}/announcements`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
+    },
     body: JSON.stringify({ title, content }),
   });
-  if (!res.ok) throw new Error("Failed to send announcement");
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw err;
+  }
+
   return res.json();
 }
