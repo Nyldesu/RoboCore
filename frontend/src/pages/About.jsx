@@ -2,8 +2,6 @@
 import "../css/About.css";
 import robleft from '../assets/robot-l.png'
 import robright from '../assets/robot-r.png'
-import adv from '../assets/adviser.png'
-import pres from '../assets/president.png'
 
 export default function About() {
   return (
@@ -30,23 +28,6 @@ export default function About() {
         </section>
         <img src={robright} alt="Robot" className="robot-img-right" />
       </div>
-      <section className="section mbox">
-        <h2 className="title section-title">Meet Our Leaders</h2>
-        <div className="leaders-grid">
-          <div className="leader-card">
-            <img src={pres} alt="President" className="leader-img" />
-            <h3 className="leader-title">President</h3>
-            <p className="leader-name">Chel Mary Joy Balbada</p>
-            <p className="leader-desc">Leads the Robotics Enthusiasts Club and helps members work together and be creative.</p>
-          </div>
-          <div className="leader-card">
-            <img src={adv} alt="Adviser" className="leader-img" />
-            <h3 className="leader-title">Adviser</h3>
-            <p className="leader-name">Engr. Rudolph Joshua U. Candare, MSc</p>
-            <p className="leader-desc">Gives guidance and support to help the club and its members grow and succeed.</p>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
