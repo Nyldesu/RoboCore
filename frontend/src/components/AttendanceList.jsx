@@ -1,37 +1,55 @@
 import React, { useEffect, useState } from "react";
 import { getAttendance } from "../api.js";
 
-const AttendanceList = () => {
+const AttendanceList = ({ newEntry }) => {
   const [allRecords, setAllRecords] = useState([]);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [filterDate, setFilterDate] = useState(getTodayISO());
   const [loading, setLoading] = useState(true);
 
-  function getTodayISO() {
-    const today = new Date();
-    return today.toISOString().split("T")[0]; // YYYY-MM-DD
-  }
+  // Get today in local ISO format
+function getTodayISO() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
+
+  // Format a backend record to local date/time
+ const formatRecord = (rec) => {
+  const dateObj = new Date(rec.timestamp); // backend UTC
+
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth() + 1;
+  const day = dateObj.getDate();
+
+  const hours = dateObj.getHours();
+  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  const displayHour = hours % 12 || 12;
+
+  return {
+    id_number: rec.id_number,
+    full_name: rec.full_name,
+    program: rec.program || "",
+    year: rec.year || "",
+    isoDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+    date: `${month}/${day}/${year}`,
+    time: `${displayHour}:${minutes} ${ampm}`,
+    timestamp: dateObj.toISOString(),
+  };
+};
+
+
+  // Fetch attendance on mount
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const data = await getAttendance();
-        const formattedData = (data || []).map((rec) => {
-          const dateObj = new Date(rec.timestamp);
-          const hours = dateObj.getHours();
-          const minutes = String(dateObj.getMinutes()).padStart(2, "0");
-          const ampm = hours >= 12 ? "PM" : "AM";
-          const displayHour = hours % 12 === 0 ? 12 : hours % 12;
-
-          return {
-            ...rec,
-            isoDate: dateObj.toISOString().split("T")[0],
-            date: `${dateObj.getMonth() + 1}/${dateObj.getDate()}/${dateObj.getFullYear()}`,
-            time: `${displayHour}:${minutes} ${ampm}`,
-          };
-        });
-
+        const formattedData = (data || []).map(formatRecord);
         setAllRecords(formattedData);
       } catch (err) {
         console.error("Error fetching attendance:", err);
@@ -42,6 +60,15 @@ const AttendanceList = () => {
     fetchData();
   }, []);
 
+  // Prepend new entry immediately
+  useEffect(() => {
+    if (newEntry) {
+      const formattedEntry = formatRecord(newEntry);
+      setAllRecords((prev) => [formattedEntry, ...prev]);
+    }
+  }, [newEntry]);
+
+  // Filter records by selected date
   useEffect(() => {
     setFilteredRecords(allRecords.filter((rec) => rec.isoDate === filterDate));
   }, [allRecords, filterDate]);
@@ -54,7 +81,6 @@ const AttendanceList = () => {
         Attendance Records
       </h1>
 
-      {/* Total Present + Date Filter */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
         <p className="text-gray-700 font-medium">
           Total Present: <span className="font-semibold">{filteredRecords.length}</span>

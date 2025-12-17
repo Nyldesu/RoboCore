@@ -4,9 +4,7 @@ const API = import.meta.env.VITE_API_URL;
 export async function loginUser(email, password) {
   const res = await fetch(`${API}/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
 
@@ -19,22 +17,27 @@ export async function loginUser(email, password) {
 }
 
 // Send attendance
-export async function sendAttendance({ id_number, timestamp }) {
+export async function sendAttendance(id_number) {
+  const token = localStorage.getItem("authToken");
+  if (!token) throw new Error("User is not logged in.");
+
   const res = await fetch(`${API}/attendance`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ id_number, timestamp }), // <-- IMPORTANT
+    body: JSON.stringify({ id_number }),
   });
 
+  const data = await res.json();
+
   if (!res.ok) {
-    const err = await res.json();
-    throw err;
+    throw new Error(data.message || "Failed to record attendance.");
   }
 
-  return res.json(); // must return full student record
+  // ✅ No longer throws if student is missing
+  return data; 
 }
 
 // Get attendance records
@@ -50,10 +53,10 @@ export async function getAttendance() {
     throw err;
   }
 
-  return res.json();
+  return res.json(); 
 }
 
-// Semd announcement
+// Send announcement
 export async function sendAnnouncement(title, content) {
   const res = await fetch(`${API}/announcements`, {
     method: "POST",

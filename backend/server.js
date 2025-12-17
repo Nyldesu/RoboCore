@@ -10,6 +10,7 @@ import Brevo from "@getbrevo/brevo";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { supabase } from './supabaseClient.js';
 
 dotenv.config();
 
@@ -67,14 +68,10 @@ async function writeJSON(file, data) {
 // ==========================
 const usersFile = path.join(__dirname, "users.json");
 const emailsJSON = path.join(__dirname, "emails.json");
-const studentsFile = path.join(__dirname, "students.json");
-const attendanceFile = path.join(__dirname, "attendance.json");
 
 // Initialize files
 await ensureFile(usersFile, { users: [] });
 await ensureFile(emailsJSON, { emails: [] });
-await ensureFile(studentsFile, { members: [] });
-await ensureFile(attendanceFile, []);
 
 // ==========================
 // AUTH HELPERS
@@ -246,36 +243,60 @@ app.post(
 // ==========================
 // ATTENDANCE (AUTH REQUIRED)
 // ==========================
-app.post("/api/attendance", verifyToken, async (req, res) => {
+app.post('/api/attendance', verifyToken, async (req, res) => {
   const { id_number } = req.body;
-  if (!id_number)
-    return res.status(400).json({ message: "Missing ID number." });
 
-  const studentsData = await readJSON(studentsFile);
-  const student = studentsData?.members?.find(
-    s => s.id_number === id_number
-  );
+  if (!id_number || !id_number.trim()) {
+    return res.status(400).json({ success: false, message: "Missing ID number." });
+  }
 
-  if (!student)
-    return res.status(404).json({ message: "Student not found." });
+  try {
+    // 1️⃣ Fetch student by scanned ID number
+    const { data: student, error: studentError } = await supabase
+      .from('students')
+      .select('*')
+      .eq('id_number', id_number)
+      .single();
 
-  const attendance = (await readJSON(attendanceFile)) || [];
+    if (studentError || !student) {
+      return res.status(404).json({ success: false, message: "Student not found." });
+    }
 
-  const now = new Date();
-  const timestamp = new Date(
-    now.getTime() - now.getTimezoneOffset() * 60000
-  ).toISOString();
+    // 2️⃣ Insert attendance record
+    const timestamp = new Date().toISOString();
+    const { data: attendanceData, error: attendanceError } = await supabase
+      .from('attendance')
+      .insert([{ student_id: student.id, timestamp }])
+      .select()   // important to get the inserted row back
+      .single();
 
-  attendance.push({ ...student, timestamp });
-  await writeJSON(attendanceFile, attendance);
+    if (attendanceError) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to record attendance",
+        error: attendanceError
+      });
+    }
 
-  res.json({ success: true });
+    // 3️⃣ Return the student object and timestamp
+    res.json({
+      success: true,
+      student: {
+        id_number: student.id_number,
+        full_name: student.full_name,
+        program: student.program || "",
+        year: student.year || ""
+      },
+      timestamp: attendanceData?.timestamp || timestamp
+    });
+
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
 });
 
-app.get("/api/attendance", verifyToken, async (req, res) => {
-  const data = await readJSON(attendanceFile);
-  res.json(data || []);
-});
+
 
 // ==========================
 // ROOT & ERROR HANDLER
