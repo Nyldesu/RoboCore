@@ -25,13 +25,7 @@ const __dirname = path.dirname(__filename);
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://robocore.onrender.com",
-    "https://robocore.onrender.com/dashboard",
-    "https://robocore.onrender.com/homepage",
-    "https://robocore.onrender.com/notifications",
-    "https://robocore.onrender.com/about",
-    "https://robocore.onrender.com/help",
-    "https://robocore.onrender.com/settings"
+    "https://robocore.onrender.com"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
