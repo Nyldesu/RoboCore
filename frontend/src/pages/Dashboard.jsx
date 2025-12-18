@@ -1,18 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AttendanceList from "../components/AttendanceList";
 import AttendanceChecker from "../components/AttendanceChecker";
-import { getAttendance, sendAnnouncement } from "../api.js";
+import { sendAnnouncement } from "../api.js";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("announcement");
 
-  // ---------------------------
-  // Announcement form states
-  // ---------------------------
+  // Announcement states
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+
+  // 🔑 trigger attendance refresh
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,48 +26,26 @@ export default function Dashboard() {
 
     try {
       setLoading(true);
-        const data = await sendAnnouncement(title, content);
+      const data = await sendAnnouncement(title, content);
       if (data.success) {
-        setMessage({ type: "success", text: "✅ Announcement sent successfully!" });
+        setMessage({ type: "success", text: "Announcement sent successfully!" });
         setTitle("");
         setContent("");
       } else {
-        setMessage({ type: "error", text: "❌ Failed to send announcement." });
+        setMessage({ type: "error", text: "Failed to send announcement." });
       }
-    } catch (err) {
-      setMessage({ type: "error", text: "⚠️ Unable to connect to the server." });
+    } catch {
+      setMessage({ type: "error", text: "Server error." });
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------------------
-  // Attendance List
-  // ---------------------------
-  const [attendanceRecords, setAttendanceRecords] = useState([]);
-
-  // Load attendance when tab is activated
-useEffect(() => {
-  if (activeTab === "list") {
-    const fetchAttendance = async () => {
-      try {
-        const data = await getAttendance();
-        setAttendanceRecords(data);
-      } catch (err) {
-        console.error("Error loading attendance:", err);
-      }
-    };
-    fetchAttendance();
-  }
-}, [activeTab]);
-
-
-  // Update list after scan
-const handleScanComplete = (record) => {
-  if (!record) return;
-  setAttendanceRecords((prev) => [record, ...prev]);
-};
-
+  // 🔑 called after QR scan
+  const handleScanComplete = () => {
+    setRefreshKey((prev) => prev + 1);
+    setActiveTab("list");
+  };
 
   return (
     <div className="p-4">
@@ -79,49 +58,45 @@ const handleScanComplete = (record) => {
         ].map((tab) => (
           <button
             key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
             className={`pb-2 text-lg font-medium ${
               activeTab === tab.id
                 ? "border-b-2 border-[#48A6A7] text-[#006A71]"
                 : "text-gray-600 hover:text-[#48A6A7]"
             }`}
-            onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* ---------------------------
-          ANNOUNCEMENT TAB
-      ---------------------------- */}
+      {/* Announcement */}
       {activeTab === "announcement" && (
-        <div className="p-6 bg-white rounded-lg shadow-md max-w-3xl mx-auto mb-8">
-          <h1 className="text-2xl font-bold text-[#006A71] mb-4">
+        <div className="p-6 bg-white rounded-lg shadow-md max-w-3xl mx-auto">
+          <h1 className="text-2xl font-bold mb-4 text-[#006A71]">
             Create Announcement
           </h1>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <input
-              type="text"
+              className="w-full border px-4 py-2 rounded"
+              placeholder="Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Announcement Title"
-              className="w-full px-4 py-2 border rounded"
             />
 
             <textarea
+              className="w-full border px-4 py-2 rounded h-32"
+              placeholder="Content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Announcement Details"
-              className="w-full h-32 px-4 py-2 border rounded"
             />
 
             <button
-              type="submit"
               disabled={loading}
-              className={`px-6 py-2 rounded text-white transition ${
+              className={`px-6 py-2 rounded text-white ${
                 loading
-                  ? "bg-gray-400 cursor-not-allowed"
+                  ? "bg-gray-400"
                   : "bg-[#006A71] hover:bg-[#48A6A7]"
               }`}
             >
@@ -131,7 +106,7 @@ const handleScanComplete = (record) => {
 
           {message && (
             <p
-              className={`mt-4 text-center font-medium ${
+              className={`mt-4 text-center ${
                 message.type === "success"
                   ? "text-green-600"
                   : "text-red-600"
@@ -143,18 +118,14 @@ const handleScanComplete = (record) => {
         </div>
       )}
 
-      {/* ---------------------------
-          ATTENDANCE CHECKER TAB
-      ---------------------------- */}
+      {/* Attendance Checker */}
       {activeTab === "attendance" && (
         <AttendanceChecker onScanComplete={handleScanComplete} />
       )}
 
-      {/* ---------------------------
-          ATTENDANCE LIST TAB
-      ---------------------------- */}
+      {/* Attendance List */}
       {activeTab === "list" && (
-        <AttendanceList newEntry={attendanceRecords[0]} />
+        <AttendanceList refreshKey={refreshKey} />
       )}
     </div>
   );

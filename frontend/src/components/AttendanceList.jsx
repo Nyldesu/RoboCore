@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getAttendance } from "../api.js";
 
-const AttendanceList = ({ newEntry }) => {
+const AttendanceList = ({ refreshKey }) => {
   const [allRecords, setAllRecords] = useState([]);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [filterDate, setFilterDate] = useState(getTodayISO());
@@ -13,58 +13,46 @@ const AttendanceList = ({ newEntry }) => {
     return new Date(now - tzOffset).toISOString().split("T")[0];
   }
 
-const formatRecord = (rec) => {
-  const dateObj = new Date(rec.timestamp);
+  const formatRecord = (rec) => {
+    const dateObj = new Date(rec.timestamp);
 
-  const dateFormatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+    const year = dateObj.getFullYear();
+    const month = dateObj.getMonth() + 1;
+    const day = dateObj.getDate();
+    const hours = dateObj.getHours();
+    const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const displayHour = hours % 12 || 12;
 
-  const timeFormatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Manila",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-
-  const [year, month, day] = dateFormatter.format(dateObj).split("-");
-
-  return {
-    ...rec,
-    isoDate: `${year}-${month}-${day}`,
-    date: `${month}/${day}/${year}`,
-    time: timeFormatter.format(dateObj),
+    return {
+      ...rec,
+      isoDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      date: `${month}/${day}/${year}`,
+      time: `${displayHour}:${minutes} ${ampm}`,
+    };
   };
-};
 
-
+  // ✅ SINGLE source of truth: backend
   useEffect(() => {
     const fetchAttendance = async () => {
       setLoading(true);
       try {
         const data = await getAttendance();
-        const formatted = (data || []).map(formatRecord);
-        setAllRecords(formatted);
+        setAllRecords((data || []).map(formatRecord));
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchAttendance();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
-    if (newEntry) {
-      setAllRecords((prev) => [formatRecord(newEntry), ...prev]);
-    }
-  }, [newEntry]);
-
-  useEffect(() => {
-    setFilteredRecords(allRecords.filter((rec) => rec.isoDate === filterDate));
+    setFilteredRecords(
+      allRecords.filter((rec) => rec.isoDate === filterDate)
+    );
   }, [allRecords, filterDate]);
 
   const handleDateChange = (e) => setFilterDate(e.target.value);
@@ -77,7 +65,8 @@ const formatRecord = (rec) => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
         <p className="text-gray-700 font-medium">
-          Total Present: <span className="font-semibold">{filteredRecords.length}</span>
+          Total Present:{" "}
+          <span className="font-semibold">{filteredRecords.length}</span>
         </p>
 
         <div className="flex items-center gap-2">
@@ -91,7 +80,11 @@ const formatRecord = (rec) => {
         </div>
       </div>
 
-      {loading && <p className="text-center text-gray-500">Loading attendance...</p>}
+      {loading && (
+        <p className="text-center text-gray-500">
+          Loading attendance...
+        </p>
+      )}
 
       {!loading && (
         <div className="overflow-x-auto">
@@ -110,13 +103,16 @@ const formatRecord = (rec) => {
             <tbody>
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="text-center py-4 text-gray-500 italic">
+                  <td
+                    colSpan="7"
+                    className="text-center py-4 text-gray-500 italic"
+                  >
                     No records found for this date.
                   </td>
                 </tr>
               ) : (
                 filteredRecords.map((rec, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
+                  <tr key={rec.id || i} className="hover:bg-gray-50">
                     <td className="px-4 py-2 border text-center">{i + 1}</td>
                     <td className="px-4 py-2 border">{rec.id_number}</td>
                     <td className="px-4 py-2 border">{rec.full_name}</td>
