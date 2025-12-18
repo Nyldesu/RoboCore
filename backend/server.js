@@ -34,7 +34,9 @@ app.use(cors({
 app.use(express.json());
 app.use(bodyParser.json());
 
-// File helpers
+// ==========================
+// FILE HELPERS
+// ==========================
 async function ensureFile(file, defaultData) {
   try {
     await fs.access(file);
@@ -61,7 +63,9 @@ async function writeJSON(file, data) {
   }
 }
 
-// File paths
+// ==========================
+// FILE PATHS
+// ==========================
 const usersFile = path.join(__dirname, "users.json");
 const emailsJSON = path.join(__dirname, "emails.json");
 
@@ -69,7 +73,9 @@ const emailsJSON = path.join(__dirname, "emails.json");
 await ensureFile(usersFile, { users: [] });
 await ensureFile(emailsJSON, { emails: [] });
 
-// Auth helpers
+// ==========================
+// AUTH HELPERS
+// ==========================
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
 
@@ -96,7 +102,9 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// Login limit
+// ==========================
+// LOGIN RATE LIMIT
+// ==========================
 let loginAttempts = {};
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_TIME = 5 * 60 * 1000;
@@ -108,7 +116,9 @@ async function loadUsers() {
   return data.users;
 }
 
-// Login route
+// ==========================
+// LOGIN ROUTE
+// ==========================
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -169,7 +179,9 @@ app.post("/api/login", async (req, res) => {
   res.json({ success: true, role: user.role, token });
 });
 
-// Auth check
+// ==========================
+// AUTH CHECK (OPTIONAL)
+// ==========================
 app.get("/api/me", verifyToken, (req, res) => {
   res.json({
     email: req.user.email,
@@ -177,7 +189,9 @@ app.get("/api/me", verifyToken, (req, res) => {
   });
 });
 
-// Brevo email system
+// ==========================
+// BREVO EMAIL SYSTEM (ADMIN)
+// ==========================
 const apiInstance = new Brevo.TransactionalEmailsApi();
 apiInstance.setApiKey(
   Brevo.TransactionalEmailsApiApiKeys.apiKey,
@@ -226,7 +240,9 @@ app.post(
   }
 );
 
-// Attendance auth
+// ==========================
+// ATTENDANCE (AUTH REQUIRED)
+// ==========================
 app.post('/api/attendance', verifyToken, async (req, res) => {
   const { id_number } = req.body;
 
@@ -591,7 +607,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal server error" });
 });
 
-// Error handler
+// ==========================
+// ROOT & ERROR HANDLER
+// ==========================
 app.get("/", (req, res) => {
   res.send("Backend running on Render ✔ Secure Login Enabled");
 });
@@ -601,7 +619,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal server error" });
 });
 
-// Start server
+// ==========================
+// START SERVER
+// ==========================
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
