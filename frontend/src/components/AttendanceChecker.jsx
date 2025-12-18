@@ -1,23 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
-import { sendAttendance } from "../api.js"; // ✅ import it
+import { sendAttendance } from "../api.js";
 
-const QrScanner = ({ onScanComplete }) => {
+const AttendanceChecker = ({ onScanComplete }) => {
   const [idNumber, setIdNumber] = useState("");
-  const scannerRef = useRef(null); // prevent double init
+  const [studentInfo, setStudentInfo] = useState(null);
+  const scannerRef = useRef(null);
 
+  // Initialize QR scanner
   useEffect(() => {
-    if (scannerRef.current) return; // prevent multiple instances
+    if (scannerRef.current) return;
 
-    const scanner = new Html5QrcodeScanner("reader", {
-      fps: 10,
-      qrbox: 250,
-    });
+    const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
 
     scanner.render(
       (decodedText) => {
         setIdNumber(decodedText);
-        scanner.clear();
+        scanner.clear().catch(() => {});
         scannerRef.current = null;
       },
       (error) => console.warn("QR error:", error)
@@ -34,30 +33,30 @@ const QrScanner = ({ onScanComplete }) => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!idNumber.trim()) {
-      return alert("Please scan or enter an ID number.");
-    }
+    if (!idNumber.trim()) return alert("Please scan or enter an ID number.");
 
     try {
-      const timestamp = new Date().toISOString();
-      // sendAttendance expects an object with id_number and timestamp
-      const data = await sendAttendance({ id_number: idNumber, timestamp });
+      const data = await sendAttendance(idNumber.trim());
+      const student = data.student;
+      const timestamp = data.timestamp;
 
-      if (!data.full_name) {
-        throw new Error("Server error");
+      setStudentInfo({ ...student, timestamp });
+
+      if (onScanComplete) {
+        onScanComplete({ ...student, timestamp });
       }
 
-      alert(`✅ ${data.full_name} recorded successfully.`);
-      onScanComplete(data);
+      alert(`✅ Attendance recorded for ${student.full_name}`);
       setIdNumber("");
     } catch (err) {
-      console.error(err);
-      alert("Invalid Input.");
+      console.error("Attendance API error:", err);
+      alert(err.message || "Failed to record attendance.");
     }
   };
 
-  const handleKeyDown = (e) => { if (e.key === 'Enter') handleSubmit(); };
-
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleSubmit();
+  };
 
   return (
     <div className="scanner-container p-6 bg-white rounded-xl shadow-md max-w-md mx-auto text-center">
@@ -73,9 +72,6 @@ const QrScanner = ({ onScanComplete }) => {
         value={idNumber}
         onChange={(e) => setIdNumber(e.target.value)}
         onKeyDown={handleKeyDown}
-        pattern="^[0-9]+-[0-9]+$"
-        title="Invalid Input."
-        required
         className="border border-gray-300 rounded px-3 py-2 mt-4 w-full focus:outline-none focus:ring-2 focus:ring-[#006A71]"
       />
 
@@ -85,8 +81,18 @@ const QrScanner = ({ onScanComplete }) => {
       >
         Submit
       </button>
+
+      {studentInfo && (
+        <div className="mt-4 text-left bg-green-50 p-3 rounded border border-green-200">
+          <p><strong>Name:</strong> {studentInfo.full_name}</p>
+          <p><strong>ID Number:</strong> {studentInfo.id_number}</p>
+          <p><strong>Program:</strong> {studentInfo.program}</p>
+          <p><strong>Year:</strong> {studentInfo.year}</p>
+          <p><strong>Time:</strong> {new Date(studentInfo.timestamp).toLocaleString()}</p>
+        </div>
+      )}
     </div>
   );
 };
 
-export default QrScanner;
+export default AttendanceChecker;

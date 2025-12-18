@@ -4,9 +4,7 @@ const API = import.meta.env.VITE_API_URL;
 export async function loginUser(email, password) {
   const res = await fetch(`${API}/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
 
@@ -18,31 +16,30 @@ export async function loginUser(email, password) {
   return await res.json();
 }
 
-// Send attendance
-export async function sendAttendance({ id_number, timestamp }) {
+export async function sendAttendance(id_number) {
+  const token = localStorage.getItem("authToken");
+  if (!token) throw new Error("User is not logged in.");
+
   const res = await fetch(`${API}/attendance`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ id_number, timestamp }), // <-- IMPORTANT
+    body: JSON.stringify({ id_number }),
   });
 
-  if (!res.ok) {
-    const err = await res.json();
-    throw err;
-  }
+  const data = await res.json();
 
-  return res.json(); // must return full student record
+  if (!res.ok) throw new Error(data.message || "Failed to record attendance.");
+
+  return data; // Should include `student` and `timestamp`
 }
 
-// Get attendance records
 export async function getAttendance() {
+  const token = localStorage.getItem("authToken") || "";
   const res = await fetch(`${API}/attendance`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!res.ok) {
@@ -50,10 +47,9 @@ export async function getAttendance() {
     throw err;
   }
 
-  return res.json();
+  return res.json(); // Returns array of attendance records
 }
-
-// Semd announcement
+// Send announcement
 export async function sendAnnouncement(title, content) {
   const res = await fetch(`${API}/announcements`, {
     method: "POST",

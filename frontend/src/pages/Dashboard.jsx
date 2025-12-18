@@ -62,9 +62,11 @@ useEffect(() => {
 
 
   // Update list after scan
-  const handleScanComplete = (record) => {
-    setAttendanceRecords((prev) => [record, ...prev]);
-  };
+const handleScanComplete = (record) => {
+  if (!record) return;
+  setAttendanceRecords((prev) => [record, ...prev]);
+};
+
 
   return (
     <div className="p-4">
@@ -152,7 +154,7 @@ useEffect(() => {
           ATTENDANCE LIST TAB
       ---------------------------- */}
       {activeTab === "list" && (
-        <AttendanceList records={attendanceRecords} />
+        <AttendanceList newEntry={attendanceRecords[0]} />
       )}
     </div>
   );
