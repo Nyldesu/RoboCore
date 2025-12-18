@@ -13,26 +13,33 @@ const AttendanceList = ({ newEntry }) => {
     return new Date(now - tzOffset).toISOString().split("T")[0];
   }
 
-  const formatRecord = (rec) => {
-    const dateObj = new Date(rec.timestamp);
-    const tzOffset = dateObj.getTimezoneOffset() * 60000;
-    const localDate = new Date(dateObj - tzOffset);
+const formatRecord = (rec) => {
+  const dateObj = new Date(rec.timestamp);
 
-    const year = localDate.getFullYear();
-    const month = localDate.getMonth() + 1;
-    const day = localDate.getDate();
-    const hours = localDate.getHours();
-    const minutes = String(localDate.getMinutes()).padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
-    const displayHour = hours % 12 || 12;
+  const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 
-    return {
-      ...rec,
-      isoDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-      date: `${month}/${day}/${year}`,
-      time: `${displayHour}:${minutes} ${ampm}`,
-    };
+  const timeFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  const [year, month, day] = dateFormatter.format(dateObj).split("-");
+
+  return {
+    ...rec,
+    isoDate: `${year}-${month}-${day}`,
+    date: `${month}/${day}/${year}`,
+    time: timeFormatter.format(dateObj),
   };
+};
+
 
   useEffect(() => {
     const fetchAttendance = async () => {
