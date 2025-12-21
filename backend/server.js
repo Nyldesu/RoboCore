@@ -35,23 +35,6 @@ app.use(express.json());
 app.use(bodyParser.json());
 
 
-// ✅ Convert UTC timestamp to PH time (UTC+8)
-const toPHTime = (timestamp) => {
-  const date = new Date(timestamp);
-  const phDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-
-  return {
-    date: phDate.toLocaleDateString("en-US"),
-    time: phDate.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true
-    })
-  };
-};
-
-
 // File helpers
 async function ensureFile(file, defaultData) {
   try {
@@ -378,17 +361,16 @@ app.get("/api/attendance/export", verifyToken, async (req, res) => {
 
     // 🔹 ADD ALL ROWS (THIS IS THE KEY FIX)
     data.forEach((rec, index) => {
-     const { date, time } = toPHTime(row.timestamp);
-
-worksheet.addRow({
-  id_number: row.students.id_number,
-  full_name: row.students.full_name,
-  program: row.students.program,
-  year: row.students.year,
-  date,
-  time
-});
-
+      worksheet.addRow({
+        no: index + 1,
+        id_number: rec.students.id_number,
+        full_name: rec.students.full_name,
+        program: rec.students.program,
+        year: rec.students.year,
+        time: new Date(rec.timestamp).toLocaleTimeString("en-PH", {
+          timeZone: "Asia/Manila",
+        }),
+      });
     });
 
     res.setHeader(
