@@ -34,6 +34,24 @@ app.use(cors({
 app.use(express.json());
 app.use(bodyParser.json());
 
+
+// ✅ Convert UTC timestamp to PH time (UTC+8)
+const toPHTime = (timestamp) => {
+  const date = new Date(timestamp);
+  const phDate = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+
+  return {
+    date: phDate.toLocaleDateString("en-US"),
+    time: phDate.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    })
+  };
+};
+
+
 // File helpers
 async function ensureFile(file, defaultData) {
   try {
@@ -317,14 +335,13 @@ app.get("/api/attendance", verifyToken, async (req, res) => {
 });
 
 app.get("/api/attendance/export", verifyToken, async (req, res) => {
-  const { date } = req.query; // YYYY-MM-DD
+  const { date } = req.query;
 
   if (!date) {
     return res.status(400).json({ message: "Date is required" });
   }
 
   try {
-    // Fetch attendance + student info
     const { data, error } = await supabase
       .from("attendance")
       .select(`
@@ -337,47 +354,50 @@ app.get("/api/attendance/export", verifyToken, async (req, res) => {
         )
       `)
       .gte("timestamp", `${date}T00:00:00`)
-      .lte("timestamp", `${date}T23:59:59`);
+      .lt("timestamp", `${date}T23:59:59`)
+      .order("timestamp", { ascending: true });
 
     if (error) throw error;
 
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Attendance");
+    if (!data || data.length === 0) {
+      return res.status(404).json({ message: "No attendance records found" });
+    }
 
-    sheet.columns = [
-      { header: "#", key: "index", width: 5 },
+    // 🔹 Create workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Attendance");
+
+    worksheet.columns = [
+      { header: "#", key: "no", width: 5 },
       { header: "ID Number", key: "id_number", width: 15 },
       { header: "Full Name", key: "full_name", width: 30 },
       { header: "Program", key: "program", width: 12 },
       { header: "Year", key: "year", width: 8 },
-      { header: "Date", key: "date", width: 12 },
-      { header: "Time", key: "time", width: 12 },
+      { header: "Time", key: "time", width: 15 },
     ];
 
-    data.forEach((row, i) => {
-      const d = new Date(row.timestamp);
+    // 🔹 ADD ALL ROWS (THIS IS THE KEY FIX)
+    data.forEach((rec, index) => {
+     const { date, time } = toPHTime(row.timestamp);
 
-      sheet.addRow({
-        index: i + 1,
-        id_number: row.students.id_number,
-        full_name: row.students.full_name,
-        program: row.students.program,
-        year: row.students.year,
-        date: d.toLocaleDateString(),
-        time: d.toLocaleTimeString(),
-      });
+worksheet.addRow({
+  id_number: row.students.id_number,
+  full_name: row.students.full_name,
+  program: row.students.program,
+  year: row.students.year,
+  date,
+  time
+});
+
     });
 
-    // Header styling
-    sheet.getRow(1).font = { bold: true };
-
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=attendance-${date}.xlsx`
-    );
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=attendance-${date}.xlsx`
     );
 
     await workbook.xlsx.write(res);
@@ -388,7 +408,6 @@ app.get("/api/attendance/export", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Failed to export attendance" });
   }
 });
-
 
 // Error handler
 app.get("/", (req, res) => {

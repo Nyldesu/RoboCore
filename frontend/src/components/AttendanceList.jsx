@@ -59,6 +59,43 @@ const AttendanceList = ({ refreshKey }) => {
 
   const handleDateChange = (e) => setFilterDate(e.target.value);
 
+  const downloadExcel = async (date) => {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    alert("You are not logged in.");
+    return;
+  }
+
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/attendance/export?date=${date}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Failed to download file");
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `attendance-${date}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  window.URL.revokeObjectURL(url);
+};
+
+
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <h1 className="text-3xl font-bold text-center text-[#006A71] mb-6">
@@ -79,29 +116,10 @@ const AttendanceList = ({ refreshKey }) => {
             onChange={handleDateChange}
             className="border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
-           <button
-  onClick={async () => {
-    try {
-      const blob = await downloadAttendanceExcel(filterDate);
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `attendance-${filterDate}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      alert("Failed to download Excel file");
-    }
-  }}
-  className="bg-[#006A71] text-white px-4 py-2 rounded hover:bg-[#48A6A7]"
->
-  Download Excel
-</button>
-
+          <button onClick={() => downloadExcel(filterDate)} 
+            className="px-4 py-2 bg-[#006A71] text-white rounded hover:bg-[#48A6A7]">
+            Download Excel
+          </button>
         </div>
       </div>
 
