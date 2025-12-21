@@ -69,16 +69,22 @@ export async function sendAnnouncement(title, content) {
 }
 
 export const downloadAttendanceExcel = async (date) => {
+  const token = localStorage.getItem("authToken");
+  if (!token) throw new Error("User is not logged in");
+
   const res = await fetch(
     `${import.meta.env.VITE_API_URL}/attendance/export?date=${date}`,
     {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${token}`,
       },
     }
   );
 
-  if (!res.ok) throw new Error("Failed to download");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Failed to download file");
+  }
 
   const blob = await res.blob();
   return blob;

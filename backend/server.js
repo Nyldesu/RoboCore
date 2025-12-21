@@ -1,4 +1,3 @@
-/* npm install @getbrevo/brevo dotenv bcrypt jsonwebtoken express cors body-parser */
 import ExcelJS from "exceljs";
 import express from "express";
 import cors from "cors";
@@ -325,6 +324,10 @@ app.get("/api/attendance/export", verifyToken, async (req, res) => {
   }
 
   try {
+    // PH timezone boundaries in UTC for filtering
+    const startPH = new Date(`${date}T00:00:00+08:00`);
+    const endPH = new Date(`${date}T23:59:59+08:00`);
+
     const { data, error } = await supabase
       .from("attendance")
       .select(`
@@ -336,17 +339,16 @@ app.get("/api/attendance/export", verifyToken, async (req, res) => {
           year
         )
       `)
-      .gte("timestamp", `${date}T00:00:00`)
-      .lt("timestamp", `${date}T23:59:59`)
+      .gte("timestamp", startPH.toISOString())
+      .lte("timestamp", endPH.toISOString())
       .order("timestamp", { ascending: true });
 
     if (error) throw error;
-
     if (!data || data.length === 0) {
       return res.status(404).json({ message: "No attendance records found" });
     }
 
-    // 🔹 Create workbook
+    // Create Excel workbook
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Attendance");
 
@@ -356,20 +358,29 @@ app.get("/api/attendance/export", verifyToken, async (req, res) => {
       { header: "Full Name", key: "full_name", width: 30 },
       { header: "Program", key: "program", width: 12 },
       { header: "Year", key: "year", width: 8 },
+      { header: "Date", key: "date", width: 12 },
       { header: "Time", key: "time", width: 15 },
     ];
 
-    // 🔹 ADD ALL ROWS (THIS IS THE KEY FIX)
+    // Format each row exactly like AttendanceList
     data.forEach((rec, index) => {
+      const dateObj = new Date(rec.timestamp);
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth() + 1;
+      const day = dateObj.getDate();
+      const hours = dateObj.getHours();
+      const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      const displayHour = hours % 12 || 12;
+
       worksheet.addRow({
         no: index + 1,
         id_number: rec.students.id_number,
         full_name: rec.students.full_name,
         program: rec.students.program,
         year: rec.students.year,
-        time: new Date(rec.timestamp).toLocaleTimeString("en-PH", {
-          timeZone: "Asia/Manila",
-        }),
+        date: `${month}/${day}/${year}`,
+        time: `${displayHour}:${minutes} ${ampm}`,
       });
     });
 
@@ -384,7 +395,6 @@ app.get("/api/attendance/export", verifyToken, async (req, res) => {
 
     await workbook.xlsx.write(res);
     res.end();
-
   } catch (err) {
     console.error("Excel export error:", err);
     res.status(500).json({ message: "Failed to export attendance" });
