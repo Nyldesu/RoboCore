@@ -364,12 +364,12 @@ app.get("/api/attendance/export", verifyToken, async (req, res) => {
 
     // Format each row exactly like AttendanceList
     data.forEach((rec, index) => {
-      const dateObj = new Date(rec.timestamp);
-      const year = dateObj.getFullYear();
-      const month = dateObj.getMonth() + 1;
-      const day = dateObj.getDate();
-      const hours = dateObj.getHours();
-      const minutes = String(dateObj.getMinutes()).padStart(2, "0");
+      const phTimestamp = new Date(new Date(rec.timestamp).getTime() + 8 * 60 * 60 * 1000);
+      const year = phTimestamp.getFullYear();
+      const month = phTimestamp.getMonth() + 1;
+      const day = phTimestamp.getDate();
+      const hours = phTimestamp.getHours();
+      const minutes = String(phTimestamp.getMinutes()).padStart(2, "0");
       const ampm = hours >= 12 ? "PM" : "AM";
       const displayHour = hours % 12 || 12;
 
