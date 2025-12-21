@@ -67,3 +67,19 @@ export async function sendAnnouncement(title, content) {
 
   return res.json();
 }
+
+export const downloadAttendanceExcel = async (date) => {
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL}/attendance/export?date=${date}`,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+
+  if (!res.ok) throw new Error("Failed to download");
+
+  const blob = await res.blob();
+  return blob;
+};

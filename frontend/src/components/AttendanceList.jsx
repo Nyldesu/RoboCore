@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getAttendance } from "../api.js";
+import { downloadAttendanceExcel } from "../api.js";
+
 
 const AttendanceList = ({ refreshKey }) => {
   const [allRecords, setAllRecords] = useState([]);
@@ -77,6 +79,29 @@ const AttendanceList = ({ refreshKey }) => {
             onChange={handleDateChange}
             className="border border-gray-300 rounded-lg px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
+           <button
+  onClick={async () => {
+    try {
+      const blob = await downloadAttendanceExcel(filterDate);
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `attendance-${filterDate}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Failed to download Excel file");
+    }
+  }}
+  className="bg-[#006A71] text-white px-4 py-2 rounded hover:bg-[#48A6A7]"
+>
+  Download Excel
+</button>
+
         </div>
       </div>
 

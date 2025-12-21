@@ -1,5 +1,5 @@
 /* npm install @getbrevo/brevo dotenv bcrypt jsonwebtoken express cors body-parser */
-
+import ExcelJS from "exceljs";
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -313,6 +313,79 @@ app.get("/api/attendance", verifyToken, async (req, res) => {
   } catch (err) {
     console.error("Attendance fetch error:", err);
     res.status(500).json({ message: "Failed to fetch attendance records" });
+  }
+});
+
+app.get("/api/attendance/export", verifyToken, async (req, res) => {
+  const { date } = req.query; // YYYY-MM-DD
+
+  if (!date) {
+    return res.status(400).json({ message: "Date is required" });
+  }
+
+  try {
+    // Fetch attendance + student info
+    const { data, error } = await supabase
+      .from("attendance")
+      .select(`
+        timestamp,
+        students (
+          id_number,
+          full_name,
+          program,
+          year
+        )
+      `)
+      .gte("timestamp", `${date}T00:00:00`)
+      .lte("timestamp", `${date}T23:59:59`);
+
+    if (error) throw error;
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Attendance");
+
+    sheet.columns = [
+      { header: "#", key: "index", width: 5 },
+      { header: "ID Number", key: "id_number", width: 15 },
+      { header: "Full Name", key: "full_name", width: 30 },
+      { header: "Program", key: "program", width: 12 },
+      { header: "Year", key: "year", width: 8 },
+      { header: "Date", key: "date", width: 12 },
+      { header: "Time", key: "time", width: 12 },
+    ];
+
+    data.forEach((row, i) => {
+      const d = new Date(row.timestamp);
+
+      sheet.addRow({
+        index: i + 1,
+        id_number: row.students.id_number,
+        full_name: row.students.full_name,
+        program: row.students.program,
+        year: row.students.year,
+        date: d.toLocaleDateString(),
+        time: d.toLocaleTimeString(),
+      });
+    });
+
+    // Header styling
+    sheet.getRow(1).font = { bold: true };
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=attendance-${date}.xlsx`
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error("Excel export error:", err);
+    res.status(500).json({ message: "Failed to export attendance" });
   }
 });
 

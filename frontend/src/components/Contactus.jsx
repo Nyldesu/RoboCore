@@ -1,6 +1,11 @@
 import React from 'react';
 import '../CSS/Contactus.css';
 
+const submitMessage = (e) => {
+  e.preventDefault();
+  alert("Thank you for reaching out! We will get back to you soon.");
+}
+
 function ContactUs() {
   return (
     <div className="contact-container">
@@ -18,7 +23,7 @@ function ContactUs() {
           <input type="email" placeholder="Your Email" required/>
           <label>Message</label>
           <textarea rows="4" placeholder="Your Message" required></textarea>
-          <button type="submit">Send</button>
+          <button type="submit" onClick={submitMessage}>Send</button>
         </form>
       </div>
     </div>
