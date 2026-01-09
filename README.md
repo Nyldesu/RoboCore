@@ -72,11 +72,6 @@ The **live deployment** of the system is available at:
 * Create and send announcements
 * Manage student records
 
-### Student
-
-* Register attendance
-* Receive announcements via email
-
 ---
 
 ## 4. Setup Instructions (README / Installation Guide)
