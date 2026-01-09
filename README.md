@@ -1,6 +1,3 @@
-Here is the updated **README.md** with the exact **live server URL** included in the setup and usage sections. You can copy this directly into your repository.
-
----
 
 # Web-Based Attendance and Announcement System
 
