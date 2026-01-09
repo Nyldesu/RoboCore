@@ -8,7 +8,7 @@ The **Web-Based Attendance and Announcement System** is a full-stack web applica
 The system is built using **React.js** for the frontend, **Express.js** for the backend API, **Supabase** for database and authentication services, and **Brevo API** for automated email delivery.
 
 The **live deployment** of the system is available at:
-**[https://robocore-onrender.com](https://robocore-onrender.com)**
+**[https://robocore-onrender.com](https://robocore.onrender.com)**
 
 ---
 
@@ -89,7 +89,7 @@ The **live deployment** of the system is available at:
 
 The live version of the system is deployed at:
 
-**[https://robocore-onrender.com](https://robocore-onrender.com)**
+**[https://robocore.onrender.com](https://robocore.onrender.com)**
 
 You can use this URL to **access the system without local setup** for demonstration or evaluation.
 
